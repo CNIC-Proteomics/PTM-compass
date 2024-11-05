@@ -31,6 +31,7 @@ def main(args):
     score = config._sections['DuplicateRemover']['scorecolumn']
     spscore = config._sections['DuplicateRemover']['spscorecolumn']
     
+    print( f"SPSCORE: {spscore}")
     logging.info('Reading input file2 ' + str(args.infile))
     df = pd.read_feather(args.infile)
     

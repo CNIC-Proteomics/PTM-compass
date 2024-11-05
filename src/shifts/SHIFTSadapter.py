@@ -141,24 +141,24 @@ if __name__ == '__main__':
     # get the output file
     # if output directory is not defined, get the folder from given file
     # get the base name of the input file
-    outdir = args.outdir if args.outdir else os.path.dirname( ifile )
-    ofile = os.path.join( outdir, os.path.basename(ifile) )
-    basename = os.path.splitext(os.path.basename(ifile))[0]
-
     # construct output file path with "_XXX" appended to the filename
+    # log files
+    outdir = args.outdir if args.outdir else os.path.dirname(ifile)
+    basename = os.path.splitext(os.path.basename(ifile))[0]
     ofile = os.path.join(outdir, f"{basename}_SHIFTS.feather")
+    log_file = os.path.join(outdir, f"{basename}_SHIFTS_log.txt")
+    log_file_debug = os.path.join(outdir, f"{basename}_SHIFTS_log_debug.txt")
+
 
     if '*' in ifile: # wildcard
         flist = glob.glob(ifile)
         for f in flist:
-            # create ofile
+            # create ofiles
             of = os.path.join( outdir, os.path.basename(f) )
-            # logging debug level. By default, info level
-            log_file = basename + '_log.txt'
-            log_file_debug = basename + '_log_debug.txt'
-            # Logging debug level. By default, info level
-            log_file = basename + '_log.txt'
-            log_file_debug = basename + '_log_debug.txt'
+            basename = os.path.splitext(os.path.basename(of))[0]
+            ofile = os.path.join(outdir, f"{basename}_SHIFTS.feather")
+            log_file = os.path.join(outdir, f"{basename}_SHIFTS_log.txt")
+            log_file_debug = os.path.join(outdir, f"{basename}_SHIFTS_log_debug.txt")
             if args.verbose:
                 logging.basicConfig(level=logging.DEBUG,
                                     format='%(asctime)s - %(levelname)s - %(message)s',
@@ -174,15 +174,9 @@ if __name__ == '__main__':
         
             # start main function
             logging.info('start script: '+'{0}'.format(' '.join([x for x in sys.argv])))
-            main(f,of)
+            main(f, ofile)
         logging.info('end script')
     else:
-        # logging debug level. By default, info level
-        log_file = basename + '_log.txt'
-        log_file_debug = basename + '_log_debug.txt'
-        # Logging debug level. By default, info level
-        log_file = basename + '_log.txt'
-        log_file_debug = basename + '_log_debug.txt'
         if args.verbose:
             logging.basicConfig(level=logging.DEBUG,
                                 format='%(asctime)s - %(levelname)s - %(message)s',
