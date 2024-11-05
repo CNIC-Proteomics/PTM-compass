@@ -109,11 +109,11 @@ def bin_operations(df, apex_list, ppm_max, peak_label, orphan_label,
     (bin_value, df) = float(df[0]), df[1]
     
     # assign to peaks
-    df[col_ClosestPeak] = df.apply(lambda x: closest_peak(apex_list, x[col_CalDeltaMH]), axis = 1)
+    df[col_ClosestPeak] = df.apply(lambda x: closest_peak(apex_list, float(x[col_CalDeltaMH])), axis = 1)
 
     # identify orphans
-    df[col_Peak] = df.apply(lambda x: find_orphans(ppm_max, x[col_TheoMass], x[col_ClosestPeak], x[col_CalDeltaMH], peak_label, orphan_label)[0], axis = 1)
-    df[col_ppm] = df.apply(lambda x: find_orphans(ppm_max, x[col_TheoMass], x[col_ClosestPeak], x[col_CalDeltaMH], peak_label, orphan_label)[1], axis = 1)
+    df[col_Peak] = df.apply(lambda x: find_orphans(ppm_max, float(x[col_TheoMass]), float(x[col_ClosestPeak]), float(x[col_CalDeltaMH]), peak_label, orphan_label)[0], axis = 1)
+    df[col_ppm] = df.apply(lambda x: find_orphans(ppm_max, float(x[col_TheoMass]), float(x[col_ClosestPeak]), float(x[col_CalDeltaMH]), peak_label, orphan_label)[1], axis = 1)
     df[col_Peak] = df[col_Peak].astype('category')
     
     # calculate FDR

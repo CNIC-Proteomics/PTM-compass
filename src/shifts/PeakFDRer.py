@@ -30,19 +30,19 @@ pd.options.mode.chained_assignment = None  # default='warn'
 # Local functions #
 ###################
 
-def read_experiments(experiments_table):
+def read_experiments(experiments_table, raw_column):
     '''
     Read input file containing groups and filenames in tab-separated format.
     '''
-    #df = pd.read_csv(experiments_table, sep="\t", names=['Batch', 'Experiment', 'Spectrum_File'])
-    df = pd.read_csv(experiments_table, sep="\t", names=['Experiment', 'Spectrum_File'])
+    #df = pd.read_csv(experiments_table, sep="\t", names=['Batch', 'Experiment', raw_column])
+    df = pd.read_csv(experiments_table, sep="\t", names=['Experiment', raw_column])
     #df['Batch'] = df['Batch'].astype('string')
     #df['Batch'] = df['Batch'].str.strip()
     df['Experiment'] = df['Experiment'].astype('string')
     df['Experiment'] = df['Experiment'].str.strip()
-    df['Spectrum_File'] = df['Spectrum_File'].astype('string')
-    df['Spectrum_File'] = df['Spectrum_File'].str.strip()
-    if df['Spectrum_File'].duplicated().any(): # Check no repeats
+    df[raw_column] = df[raw_column].astype('string')
+    df[raw_column] = df[raw_column].str.strip()
+    if df[raw_column].duplicated().any(): # Check no repeats
         sys.exit('ERROR: Experiments table contains repeat values in the filename column')
     #exp_groups = exp_df.groupby(by = exp_df.columns[0], axis = 0)
     #for position, exp in exp_groups:
@@ -174,6 +174,7 @@ def get_peak_FDR(df, score_column, col_Peak, closestpeak_column):
         group['Peak_Rank_D'] =  group['Peak_Rank_D'].replace(0, np.nan).ffill()
         # calculate peak FDR
         group['PeakFDR'] = group['Peak_Rank_D']/group['Peak_Rank_T']
+        group['PeakFDR'] =  group['PeakFDR'].replace(np.nan, 0).ffill()
         return group
     peaks_df = []
     for group in grouped_peaks:
@@ -217,6 +218,7 @@ def get_local_FDR(df, score_column, localFDR_orphans):
     
     # calculate local FDR
     dfo['LocalFDR'] = dfo['Local_Rank_D']/dfo['Local_Rank_T']
+    dfo['LocalFDR'] =  dfo['LocalFDR'].replace(np.nan, 0).ffill()
     if localFDR_orphans:
         df = pd.concat([dfp, dfo], axis=0)
         return df
@@ -264,6 +266,7 @@ def get_global_FDR(df, score_column, peak_label, col_Peak, closestpeak_column,
         
         # calculate global FDR
         each_df['GlobalFDR'] = each_df['Global_Rank_D']/each_df['Global_Rank_T']
+        each_df['GlobalFDR'] =  each_df['GlobalFDR'].replace(np.nan, 0).ffill()
     
     dfo = pd.concat([df_below, df_above])
     if globalFDR_orphans:
@@ -360,10 +363,10 @@ def main(args):
     df = pd.read_feather(args.infile)
     # Add groups
     logging.info('Reading experiments table...')
-    groups = read_experiments(args.experiment_table)
+    groups = read_experiments(args.experiment_table, raw_column)
     df = make_groups(df, groups, raw_column)
     # Return info
-    group_dict = {a: b['Spectrum_File'].tolist() for a,b in groups.groupby('Experiment')}
+    group_dict = {a: b[raw_column].tolist() for a,b in groups.groupby('Experiment')}
     for key in group_dict:
         logging.info('\t' + key + ': ' + str(len(group_dict[key])) + ' files')
     
