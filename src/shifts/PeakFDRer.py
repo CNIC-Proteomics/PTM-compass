@@ -361,6 +361,7 @@ def main(args):
     #df = pd.read_feather(args.infile)
     # df = pd.read_csv(args.infile, sep="\t", float_precision='high', low_memory=False)
     df = pd.read_feather(args.infile)
+    df[score_column] = df[score_column].astype(float)
     # Add groups
     logging.info('Reading experiments table...')
     groups = read_experiments(args.experiment_table, raw_column)
