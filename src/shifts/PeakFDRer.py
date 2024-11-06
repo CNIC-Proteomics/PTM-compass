@@ -362,6 +362,8 @@ def main(args):
     # df = pd.read_csv(args.infile, sep="\t", float_precision='high', low_memory=False)
     df = pd.read_feather(args.infile)
     df[score_column] = df[score_column].astype(float)
+    if args.appfile:
+        apex_list = extractApexList(args.appfile)
     # Add groups
     logging.info('Reading experiments table...')
     groups = read_experiments(args.experiment_table, raw_column)
@@ -453,7 +455,6 @@ def main(args):
     # Split in folders by Experiment
     if args.appfile:
         logging.info("Making peak frequency table...")
-        apex_list = extractApexList(args.appfile)
         apex_list = pd.DataFrame(apex_list, columns=['Peak'])
         # Frequency
         freqs = pd.DataFrame(df[deltamass_column].value_counts())
