@@ -122,7 +122,7 @@ def Obtain_n (MasterProtein, dicc_fasta,clean_seq,m,npos) :
     new_b_e_list = []
     for i in range(len(b_e_list)): 
         if float(i)%2 ==0: 
-            new_b_e_list.append(b_e_list[i]+"_"+b_e_list[i+1])
+            new_b_e_list.append(b_e_list[i]+"-"+b_e_list[i+1])
     initial_final =";".join(new_b_e_list )
     initial = ";".join(listab)
     final = ";".join(listae)
@@ -253,6 +253,9 @@ def main(file,infile1,fastafile):
     Score_column_name =  config["PDMTableMaker_Parameters"].get("Score_column_name") # Score  column name 
     Score_parameter =  config["PDMTableMaker_Parameters"].get("Score_parameter") # Score parameter column name 
     ScanID_column_name =  config["PDMTableMaker_Parameters"].get("ScanID_column_name") # ScanID  column name 
+    range_position_left_column_name =  config["PDMTableMaker_Parameters"].get("range_position_left_column_name") # range_position_left_column_name
+    range_position_right_column_name =  config["PDMTableMaker_Parameters"].get("range_position_right_column_name") # range_position_right_column_name
+
 
     logging.info("Processing input file")
     
@@ -276,10 +279,11 @@ def main(file,infile1,fastafile):
         df = dfinitial
 
     counts = df[seq_column_name].value_counts() # The number of times that the species appear is saved in the variable count
-    df2 = pd.DataFrame(columns=["p","pdm","q","qFreq","pFreq","pd","d","Missing_Cleavage","Truncated","best_scan","Theo_mh","ScanFreq","a","m","n","l","b","e","first_b","first_n","f","k","qdna","qna","qk","qf","qdnaFreq","qnaFreq","qkFreq","qfFreq","A","M","L","N","qdNA"],dtype=float) # Dataframe 2 is created with the aim of 
+    df2 = pd.DataFrame(columns=["p","pdm","q","qFreq","pFreq","pd","d","Missing_Cleavage","Truncated","best_scan","Theo_mh","ScanFreq","a","m","n","l","b","e","first_b","first_n","f","k","qdna","qna","qk","qf","qdnaFreq","qnaFreq","qkFreq","qfFreq","A","M","L","N","qdNA","m_left", "m_right"],dtype=float) # Dataframe 2 is created with the aim of 
 
     cont = 0
     seqlist = [] # In this list it will be saved the sequences already analyzed
+    seqlist1 = [] # In this list it will be saved the sequences already analyzed
     dic_pd_M = {}
     dic_b_e = {}
     dic_b_e_mn = {}
@@ -290,6 +294,8 @@ def main(file,infile1,fastafile):
     dic_q_freq = {}
     dic_p_freq = {}
     scoredic ={}
+    dicc_m_left={}
+    dicc_m_right={}
     for index, row in df.iterrows():
 
         meet = 0 
@@ -311,6 +317,23 @@ def main(file,infile1,fastafile):
                 if int(Score_parameter) == 1: 
                     if float(scoredic[row[seq_column_name]][1])< float(row[Score_column_name]):
                         scoredic[row[seq_column_name]]=row[ScanID_column_name], row[Score_column_name]
+            if range_position_left_column_name=="": 
+
+                dicc_m_left[row[seq_column_name]]=""
+                dicc_m_right[row[seq_column_name]]=""
+            else: 
+                if  row[seq_column_name] not in seqlist1:
+                    seqlist1.append(row[seq_column_name])
+
+
+                    dicc_m_left[row[seq_column_name]]=row[range_position_left_column_name]
+                    dicc_m_right[row[seq_column_name]]=row[range_position_right_column_name]
+                else:
+                    if row[range_position_left_column_name]<dicc_m_left[row[seq_column_name]]:
+                        dicc_m_left[row[seq_column_name]]=row[range_position_left_column_name]
+                    if row[range_position_right_column_name]<dicc_m_right[row[seq_column_name]]:
+                        dicc_m_right[row[seq_column_name]]=row[range_position_right_column_name]
+
             if  row[seq_column_name] not in seqlist:
 
                 seqlist.append(row[seq_column_name])
@@ -594,7 +617,12 @@ def main(file,infile1,fastafile):
     cont2 = 0
     for index, row in df2.iterrows(): # A M and  L columns are added 
         d = row["d"] 
-
+        if row["a"]=="U":
+            df2.loc[cont2,"m_right"]= 0
+            df2.loc[cont2,"m_left"]= 0
+        else:
+            df2.loc[cont2,"m_right"]= dicc_m_right[row["pdm"]]
+            df2.loc[cont2,"m_left"]= dicc_m_left[row["pdm"]]
         try:
 
         
