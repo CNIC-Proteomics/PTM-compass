@@ -591,7 +591,8 @@ def main(args):
         plotObject.readData(args.infile)
         
         # get peaks of interest
-        plotObject.getPeaks(args.peaks)
+        if args.peaks:
+            plotObject.getPeaks(args.peaks)
 
         plotObject.readPlotsFromConfig(config)
         plot_graphs()

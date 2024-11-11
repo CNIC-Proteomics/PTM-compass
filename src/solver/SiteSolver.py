@@ -30,7 +30,7 @@ def readInfile(infile,Dm_column_name):
     '''    
     Read input file to dataframe.
     '''
-    df = pd.read_csv(infile, sep="\t", float_precision='high',low_memory=False,dtype={Dm_column_name:str})
+    df = pd.read_csv(infile, sep="\t", float_precision='high',low_memory=False,dtype={Dm_column_name:str}, encoding='utf-8', encoding_errors='replace')
     df[Dm_column_name].astype("float64").dtypes
     return df
 
