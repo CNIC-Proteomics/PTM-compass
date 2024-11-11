@@ -34,7 +34,7 @@ def readInfile(infile,Dm_column_name):
     '''    
     Read input file to dataframe.
     '''
-    df = pd.read_csv(infile, sep="\t", float_precision='high',low_memory=False,dtype={Dm_column_name:str})
+    df = pd.read_csv(infile, sep="\t", float_precision='high',low_memory=False,dtype={Dm_column_name:str}, encoding='utf-8', encoding_errors='replace')
     df[Dm_column_name].astype("float64").dtypes
     return df
 
@@ -134,6 +134,7 @@ def main(configurationfile,PDMTable,UserFile,):
     dfPDM = readInfile(PDMTable,DM_PDM_column_name)
     dfUserFile =readInfile(UserFile,DM_PDM_column_name)
     dfUserFile = dfUserFile.replace(np.nan,"")
+    dfUserFile = dfUserFile.iloc[:, :-1] # remove the last column (the column with comments)
 
     group_name =(list(dfUserFile.columns.values)[-1]) #Cogemos el nombre del grupo que siempre estará en último lugar en el fichero
     userlist_unique = list(dict.fromkeys(dfUserFile[DM_PDM_column_name].tolist()))
