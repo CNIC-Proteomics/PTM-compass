@@ -348,6 +348,7 @@ def main(args):
     peakfdr = float(config._sections['PeakFDRer']['peak_threshold'])
     localFDR_orphans = config.getboolean('PeakFDRer', 'localFDR_to_orphans_only')
     globalFDR_orphans = config.getboolean('PeakFDRer', 'globalFDR_to_orphans_only')
+    ignore_groups = config.getboolean('PeakFDRer', 'ignore_groups')
     
     # try:
     #     if not os.path.exists(args.output):
@@ -390,7 +391,7 @@ def main(args):
     else:
         logging.info("Calculating Global FDR for all (orphan and peak) PSMs")
     logging.info("Deltamass region limit for Global FDR: " + str(dm_region_limit) + " Da")
-    if args.ignore_groups:
+    if args.ignore_groups or ignore_groups:
         df = get_global_FDR(("ALL", df),
                             score_column,
                             peak_label,
