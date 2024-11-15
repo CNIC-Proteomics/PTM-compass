@@ -11,7 +11,9 @@ __maintainer__ = "Jose Rodriguez"
 __email__ = "andrea.laguillo@cnic.es;jmrodriguezc@cnic.es"
 __status__ = "Development"
 
-# import modules
+#########################
+# Import local packages #
+#########################
 import os
 import sys
 import argparse
@@ -22,6 +24,76 @@ import math
 import re
 from pathlib import Path
 
+
+#############
+# Constants #
+#############
+SPECTRUM_FILE_NAME = 'Spectrum_File'
+SCANID_NAME = 'ScanID'
+
+
+###################
+# Parse arguments #
+###################
+
+# Parse arguments
+parser = argparse.ArgumentParser(
+    description='''
+    SHIFTSadapter: A tool for adapting search engine results.
+
+    This tool processes the results from both the Comet-PTM and MSFragger search engines.
+    For MSFragger inputs, it calculates the left/right positions of modifications.
+    In both cases, a 'Spectrum_File' column is added.
+    ''',
+    epilog='''
+    Example:
+        python SHIFTSadapter.py -i path/to/input/file -o path/to/output/directory
+
+    Notes:
+        - Ensure that the input file follows the SHIFTS format.
+        - If no output directory is specified, the current directory is used by default.
+        - Use the -v flag to see detailed logging output for troubleshooting.
+
+    For further assistance, please refer to the documentation or contact support.
+    ''')
+
+parser.add_argument('-i', '--infile', required=True, help='Path to input file')
+parser.add_argument('-o', '--outdir', help='Output dir')
+
+parser.add_argument('-v', dest='verbose', action='store_true', help='Increase output verbosity')
+args = parser.parse_args()
+
+# getting input parameters
+ifile = args.infile
+
+# get the output file
+# if output directory is not defined, get the folder from given file
+# get the base name of the input file
+# construct output file path with "_XXX" appended to the filename
+# log files
+outdir = args.outdir if args.outdir else os.path.dirname(ifile)
+basename = os.path.splitext(os.path.basename(ifile))[0]
+ofile = os.path.join(outdir, f"{basename}_SHIFTS.feather")
+log_file = os.path.join(outdir, "SHIFTSadapter_log.txt")
+log_file_debug = os.path.join(outdir, f"SHIFTSadapter_log_debug.txt")
+
+if args.verbose:
+    logging.basicConfig(level=logging.DEBUG,
+                        format='%(asctime)s - %(levelname)s - %(message)s',
+                        datefmt='%m/%d/%Y %I:%M:%S %p',
+                        handlers=[logging.FileHandler(log_file_debug),
+                                    logging.StreamHandler()])
+else:
+    logging.basicConfig(level=logging.INFO,
+                        format='%(asctime)s - %(levelname)s - %(message)s',
+                        datefmt='%m/%d/%Y %I:%M:%S %p',
+                        handlers=[logging.FileHandler(log_file),
+                                    logging.StreamHandler()])
+
+
+###################
+# Local functions #
+###################
 
 # Function to find positions
 def msf_pos(x):
@@ -74,20 +146,18 @@ def preprocessing_msfragger(input_df):
 def add_scanId(df, ifile, ids):
 
     # add the file name without extension into 'Raw' column
-    filename = 'Spectrum_File'
-    if filename not in df.columns:
-        df[filename] = '.'.join(os.path.basename(Path(ifile)).split(".")[:-1])
+    if SPECTRUM_FILE_NAME not in df.columns:
+        df[SPECTRUM_FILE_NAME] = '.'.join(os.path.basename(Path(ifile)).split(".")[:-1])
         
     # generate the scan id from the spectrum file and the given parameters
-    scan_id = 'ScanID'
-    if scan_id not in df.columns:
+    if SCANID_NAME not in df.columns:
         # validate that all columns in 'ids' exist in the DataFrame
         missing_columns = [col for col in ids if col not in df.columns]
         if missing_columns:
             logging.error(f"Missing columns in the input file: {', '.join(missing_columns)}")
             raise ValueError(f"Missing columns: {', '.join(missing_columns)}")
         # combine the specified columns to create the ScanID
-        df[scan_id] = df[[filename]+ids].astype(str).agg('-'.join, axis=1)
+        df[SCANID_NAME] = df[[SPECTRUM_FILE_NAME]+ids].astype(str).agg('-'.join, axis=1)
 
     return df
 
@@ -133,90 +203,20 @@ def main(ifile, ofile):
 
 if __name__ == '__main__':
 
-    # Parse arguments
-    parser = argparse.ArgumentParser(
-        description='''
-        SHIFTSadapter: A tool for adapting search engine results.
-
-        This tool processes the results from both the Comet-PTM and MSFragger search engines.
-        For MSFragger inputs, it calculates the left/right positions of modifications.
-        In both cases, a 'Spectrum_File' column is added.
-        ''',
-        epilog='''
-        Example:
-            python SHIFTSadapter.py -i path/to/input/file -o path/to/output/directory
-
-        Notes:
-            - Ensure that the input file follows the SHIFTS format.
-            - If no output directory is specified, the current directory is used by default.
-            - Use the -v flag to see detailed logging output for troubleshooting.
-
-        For further assistance, please refer to the documentation or contact support.
-        ''')
-    
-    parser.add_argument('-i', '--infile', required=True, help='Path to input file')
-    parser.add_argument('-o', '--outdir', help='Output dir')
-
-    parser.add_argument('-v', dest='verbose', action='store_true', help='Increase output verbosity')
-    args = parser.parse_args()
-
-    # getting input parameters
-    ifile = args.infile
-
-    # get the output file
-    # if output directory is not defined, get the folder from given file
-    # get the base name of the input file
-    # construct output file path with "_XXX" appended to the filename
-    # log files
-    outdir = args.outdir if args.outdir else os.path.dirname(ifile)
-    basename = os.path.splitext(os.path.basename(ifile))[0]
-    ofile = os.path.join(outdir, f"{basename}_SHIFTS.feather")
-    log_file = os.path.join(outdir, f"{basename}_SHIFTS_log.txt")
-    log_file_debug = os.path.join(outdir, f"{basename}_SHIFTS_log_debug.txt")
-
-
     if '*' in ifile: # wildcard
         flist = glob.glob(ifile)
+        print( flist )
         for f in flist:
             # create ofiles
             of = os.path.join( outdir, os.path.basename(f) )
             basename = os.path.splitext(os.path.basename(of))[0]
             ofile = os.path.join(outdir, f"{basename}_SHIFTS.feather")
-            log_file = os.path.join(outdir, f"{basename}_SHIFTS_log.txt")
-            log_file_debug = os.path.join(outdir, f"{basename}_SHIFTS_log_debug.txt")
-            if args.verbose:
-                logging.basicConfig(level=logging.DEBUG,
-                                    format='%(asctime)s - %(levelname)s - %(message)s',
-                                    datefmt='%m/%d/%Y %I:%M:%S %p',
-                                    handlers=[logging.FileHandler(log_file_debug),
-                                              logging.StreamHandler()])
-            else:
-                logging.basicConfig(level=logging.INFO,
-                                    format='%(asctime)s - %(levelname)s - %(message)s',
-                                    datefmt='%m/%d/%Y %I:%M:%S %p',
-                                    handlers=[logging.FileHandler(log_file),
-                                              logging.StreamHandler()])
-        
             # start main function
             logging.info('start script: '+'{0}'.format(' '.join([x for x in sys.argv])))
             main(f, ofile)
         logging.info('end script')
     else:
-        if args.verbose:
-            logging.basicConfig(level=logging.DEBUG,
-                                format='%(asctime)s - %(levelname)s - %(message)s',
-                                datefmt='%m/%d/%Y %I:%M:%S %p',
-                                handlers=[logging.FileHandler(log_file_debug),
-                                          logging.StreamHandler()])
-        else:
-            logging.basicConfig(level=logging.INFO,
-                                format='%(asctime)s - %(levelname)s - %(message)s',
-                                datefmt='%m/%d/%Y %I:%M:%S %p',
-                                handlers=[logging.FileHandler(log_file),
-                                          logging.StreamHandler()])
-    
         # start main function
         logging.info('start script: '+'{0}'.format(' '.join([x for x in sys.argv])))
         main(ifile, ofile)
         logging.info('end script')
-        
