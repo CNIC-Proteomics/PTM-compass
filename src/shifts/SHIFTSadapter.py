@@ -70,6 +70,27 @@ def preprocessing_msfragger(input_df):
 
     return input_df
 
+# Generate the Scan ID from the Spectrum File and the provided parameters
+def add_scanId(df, ifile, ids):
+
+    # add the file name without extension into 'Raw' column
+    filename = 'Spectrum_File'
+    if filename not in df.columns:
+        df[filename] = '.'.join(os.path.basename(Path(ifile)).split(".")[:-1])
+        
+    # generate the scan id from the spectrum file and the given parameters
+    scan_id = 'ScanID'
+    if scan_id not in df.columns:
+        # validate that all columns in 'ids' exist in the DataFrame
+        missing_columns = [col for col in ids if col not in df.columns]
+        if missing_columns:
+            logging.error(f"Missing columns in the input file: {', '.join(missing_columns)}")
+            raise ValueError(f"Missing columns: {', '.join(missing_columns)}")
+        # combine the specified columns to create the ScanID
+        df[scan_id] = df[[filename]+ids].astype(str).agg('-'.join, axis=1)
+
+    return df
+
 
 def main(ifile, ofile):
     '''
@@ -81,19 +102,23 @@ def main(ifile, ofile):
         first_line = f.readline().strip().split('\t')
     
     # read the data depending on the type of search engine
-    search_engine_name = 'msfragger'
     if 'CometVersion' in first_line[0]:
         logging.info('Reading the "comet" data file...')
         df = pd.read_csv(ifile, sep='\t', skiprows=1, float_precision='high', low_memory=False, index_col=False)
         search_engine_name = 'comet'
+        ids = ['scan','charge']
     else:
         logging.info('Reading the "msfragger" data file...')
         df = pd.read_csv(ifile, sep='\t', float_precision='high', low_memory=False, index_col=False)
         search_engine_name = 'msfragger'
+        ids = ['scannum','charge']
     logging.info(f"File {ifile} loaded successfully with {len(df)} rows.")
 
-    # add the file name without extension into 'Raw' column
-    df['Spectrum_File'] = '.'.join(os.path.basename(Path(ifile)).split(".")[:-1])
+
+    # if applicable, generate the Scan ID from the Spectrum File and the provided parameters
+    logging.info('Generating ScanID')
+    df = add_scanId(df, ifile, ids)
+
 
     # process the MSFragger results
     if search_engine_name == 'msfragger':

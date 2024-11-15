@@ -1,4 +1,4 @@
-# USAGE
+# Modules
 
 Each module uses a configuration file (INI format), but some of the parameters it contains can also be specified through the command line. To see the parameters available through the command line and their descriptions, run each module with the help option, `-h` (e.g., `python DMcalibrator.py -h`).
 
@@ -221,3 +221,7 @@ This module will calculate global, local, and peak FDR values for a DMtable subd
     - One DMtable for each batch with additional columns for the global, local and peak FDR ranks and values.
     - A log file.
 
+
+## SOLVER Modules
+
+### 1. DM0Solver

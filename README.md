@@ -2,7 +2,7 @@
 
 PTM-compass is a toolset for adapting and analyzing search engine results from multiple proteomics tools such as Comet-PTM, ReCom, and MSFragger. It standardizes output files, allowing them to be processed in downstream analysis workflows.
 
-## Installation
+# Installation
 
 To install PTM-compass, clone this repository and ensure you have Python installed:
 
@@ -40,21 +40,20 @@ It’s recommended to create a virtual environment to manage dependencies for SH
 
 ## Requirements
 
-The SHIFTS toolset requires Python 3.6 or above. All other dependencies are listed in the `python_requirements.txt` file.
+The PTM-compass programs require Python 3.6 or above. All other dependencies are listed in the `python_requirements.txt` file.
 
 
-## Usage
+# Modules
 
-Each PTM-compass module has specific functionality and parameters. Modules use a configuration file (INI format) but also allow parameters to be specified via the command line. 
+Each PTM-Compass module is designed with specific functionality and configurable parameters. Modules primarily use a configuration file in INI format but also support overriding parameters via the command line.
 
-For detailed instructions on each module, please refer to the **[USAGE Guide](USAGE.md)**.
-
+For comprehensive instructions on using each module, please refer to the **[Module Guide](MODULES.md)**.
 
 ## Example Commands
 
-For further examples/tests, please refer to the **[TEST Guide](TEST.md)**.
+For additional examples and tests, please consult the **[Test Guide](TEST.md)**.
 
 
-## License
+# License
 
 This application is licensed under a **Creative Commons Attribution-NoDerivatives 4.0 International (CC BY-ND 4.0) License**. See the [LICENSE](LICENSE.md) file for details.
