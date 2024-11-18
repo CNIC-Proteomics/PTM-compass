@@ -35,9 +35,9 @@ def read_experiments(experiments_table, raw_column):
     Read input file containing groups and filenames in tab-separated format.
     '''
     #df = pd.read_csv(experiments_table, sep="\t", names=['Batch', 'Experiment', raw_column])
-    df = pd.read_csv(experiments_table, sep="\t", names=['Experiment', raw_column])
-    #df['Batch'] = df['Batch'].astype('string')
-    #df['Batch'] = df['Batch'].str.strip()
+    df = pd.read_csv(experiments_table, sep="\t")
+    df['Batch'] = df['Batch'].astype('string')
+    df['Batch'] = df['Batch'].str.strip()
     df['Experiment'] = df['Experiment'].astype('string')
     df['Experiment'] = df['Experiment'].str.strip()
     df[raw_column] = df[raw_column].astype('string')
@@ -64,22 +64,28 @@ def make_groups(df, groups, raw_column):
         else:
             group = 'N/A'
         return group
+    df['Batch'] = 'N/A'
     df['Experiment'] = 'N/A'
-    #df['Batch'] = 'N/A'
     #df['Experiment'] = df.apply(lambda x: _match_file(groups, x['Filename']), axis = 1)
     group_dict = {}
     for x in range(len(groups)):
-        # currentid = groups.iloc[x,2]
-        # currentvalue = groups.iloc[x,1], groups.iloc[x,0]
-        currentid = groups.iloc[x,1]
-        currentvalue = groups.iloc[x,0]
+        currentid = groups.iloc[x, groups.columns.get_loc(raw_column)]
+        currentvalue = groups.iloc[x, groups.columns.get_loc('Batch')]
         group_dict.setdefault(currentid, [])
         group_dict[currentid].append(currentvalue)
-    #df['Experiment'] = np.vectorize(_match_file)(group_dict, df['Filename'])[0]
-    df['Experiment'] = np.vectorize(_match_file)(group_dict, df[raw_column])
+    df['Batch'] = np.vectorize(_match_file)(group_dict, df[raw_column])
     #df['Batch'] = np.vectorize(_match_file)(group_dict, df['Filename'])[1]
+    group_dict = {}
+    for x in range(len(groups)):
+        currentid = groups.iloc[x, groups.columns.get_loc(raw_column)]
+        currentvalue = groups.iloc[x, groups.columns.get_loc('Experiment')]
+        group_dict.setdefault(currentid, [])
+        group_dict[currentid].append(currentvalue)
+    df['Experiment'] = np.vectorize(_match_file)(group_dict, df[raw_column])
+    if 'N/A' in df['Batch'].unique():
+        logging.info('Warning: ' + str(df['Batch'].value_counts()['N/A']) + ' rows could not be assigned to a batch! They will still be used to calculate Local and Peak FDR.') # They will all be grouped together for FDR calculations
     if 'N/A' in df['Experiment'].unique():
-        logging.info('Warning: ' + str(df['Experiment'].value_counts()['N/A']) + ' rows could not be assigned to an experiment! They will still be used to calculate Local and Peak FDR.') # They will all be grouped together for FDR calculations
+        logging.info('Warning: ' + str(df['Experiment'].value_counts()['N/A']) + ' rows could not be assigned to an experiment!')
     return df
 
 def extractApexList(file):
@@ -231,14 +237,14 @@ def get_global_FDR(df, score_column, peak_label, col_Peak, closestpeak_column,
     Calculate global FDR
     '''
     # get the EXPERIMENT value from the input tuple df=(experiment,df)
-    (experiment_value, df) = df[0], df[1]
+    (batch_value, df) = df[0], df[1]
     if globalFDR_orphans: # Calculate and apply global FDR to orphan PSMs only
         dfo = df[df.PeakAssignation!='PEAK'].copy()
         dfp = df[df.PeakAssignation=='PEAK'].copy()
         dfp['Global_Rank_T'] = dfp['Global_Rank_D'] = dfp['GlobalFDR'] = np.nan
     else: # Calculate and apply global FDR to all PSMs
         dfo = df
-    print("\t\t\t\t\tCalculating in experiment: " + experiment_value)
+    print("\t\t\t\t\tCalculating in batch: " + batch_value)
     # sort by score
     # if recom_data == 0: # by Comet Xcorr
     #     df.sort_values(by=['Xcor', 'Label'], inplace=True, ascending=False)
@@ -348,7 +354,7 @@ def main(args):
     peakfdr = float(config._sections['PeakFDRer']['peak_threshold'])
     localFDR_orphans = config.getboolean('PeakFDRer', 'localFDR_to_orphans_only')
     globalFDR_orphans = config.getboolean('PeakFDRer', 'globalFDR_to_orphans_only')
-    ignore_groups = config.getboolean('PeakFDRer', 'ignore_groups')
+    ignore_batch = config.getboolean('PeakFDRer', 'ignore_batch')
     
     # try:
     #     if not os.path.exists(args.output):
@@ -391,7 +397,7 @@ def main(args):
     else:
         logging.info("Calculating Global FDR for all (orphan and peak) PSMs")
     logging.info("Deltamass region limit for Global FDR: " + str(dm_region_limit) + " Da")
-    if args.ignore_groups or ignore_groups:
+    if args.ignore_batch or ignore_batch:
         df = get_global_FDR(("ALL", df),
                             score_column,
                             peak_label,
@@ -403,7 +409,7 @@ def main(args):
                             n_workers)
     else:
         with concurrent.futures.ProcessPoolExecutor(max_workers=n_workers) as executor:
-            df = executor.map(get_global_FDR, list(df.groupby('Experiment')), repeat(score_column),
+            df = executor.map(get_global_FDR, list(df.groupby('Batch')), repeat(score_column),
                                                                               #repeat(recom_data),
                                                                               repeat(peak_label),
                                                                               repeat(col_Peak),
@@ -527,14 +533,14 @@ if __name__ == '__main__':
     
     parser.add_argument('-i',  '--infile', required=True, help='Input file with the peak assignation')
     parser.add_argument('-a',  '--appfile', required=False, help='File with the apex list of Mass')
-    parser.add_argument('-e',  '--experiment_table', required=True, help='Tab-separated file containing experiment names and file paths')
+    parser.add_argument('-e',  '--experiment_table', required=True, help='Tab-separated file containing batch names, experiment names, and file paths')
     parser.add_argument('-c',  '--config', default=defaultconfig, help='Path to custom config.ini file')
     #parser.add_argument('-o',  '--output', required=True, help='Output directory. Will be created if it does not exist')
     
     parser.add_argument('-s',  '--score_column', help='Name of column with score for FDR calculation')
     parser.add_argument('-p',  '--peak_column', help='Name of column containing the peak/orphan labels')
     parser.add_argument('-po', '--peak_outlier_value', help='Peak FDR value to be assigned to orphans')
-    parser.add_argument('-g', '--ignore_groups', action='store_true', help='Ignore experiment table groups when calculating global FDR')
+    parser.add_argument('-b',  '--ignore_batch', action='store_true', help='Ignore experiment table batches when calculating global FDR')
     #parser.add_argument('-f',  '--fdr_filter', help='FDR value to filter by')
     #parser.add_argument('-t',  '--target_filter', help='Filter targets, 0=no 1=yes')
     #parser.add_argument('-r',  '--recom_data', help='Score for FDR calculation: 0=Xcorr, 1=cXcorr (default: %(default)s)')
