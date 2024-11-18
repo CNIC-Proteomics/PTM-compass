@@ -225,3 +225,37 @@ This module will calculate global, local, and peak FDR values for a DMtable subd
 ## SOLVER Modules
 
 ### 1. DM0Solver
+
+DM0Solver is a module that detects if a modified peptide has a Δmass belonging to a list provided by the user (Table 1), for that purpose absolute error is calculated. In such a case, the Δmass is appended at the end of the clean sequence (DM0Sequence output column) and the corresponding label is added in an additional column named DM0Label. If Δmass does not belong to the list, the module passes the modified sequence without any modification to the output columns.
+
+* **Example:**
+  ```bash
+  python DM0Solver.py -i path/to/input/file -c path/to/config/file
+  ```
+
+  - **Input:**
+    - A DMtable.
+    - A tab-separated file containing, in order:
+    ```sh
+      A column with the batch name
+      A column with the experiment name
+      A column with the file path (must match the file paths in the Filename column of your DMtable).
+    ```
+    - A configuration file (INI). The following parameters are used:
+    ```sh
+      score_column: Name of column containing score (case-sensitive)
+      dm_region_limit: Deltamass region limit for Global FDR. Two regions will be created, DM equal to or above and DM below this value
+      dm_column: Name of column containing deltamass for region limits (case-sensitive)
+      peak_outlier_value: Peak FDR value to be assigned to orphans (default=1)
+      peak_label: Label for peaks
+      peak_column: Output column that will contain the peak/orphan labels
+      caldeltamh_column: Name of column containing calibrated Delta MH
+      closestpeak_column: Output column that will contain the closest peak
+    ```
+
+  - **Output:**
+    - DM0Solver output (default suffix: “DM0S”). New columns:
+        + DM0Sequence_output_column_name: sequence corrected by DM0Solver.
+        + DM0Label_output_column_name: selected label of the list provided by the user.
+        + DM0Label_error_output_column_name: absolute error resulting from the selection of the label that appears in DM0Label_output_colummn_name.
+    - A log file.
