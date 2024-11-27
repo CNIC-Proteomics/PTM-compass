@@ -1,4 +1,18 @@
 ___
+## 1.1
+```
+DATE: 2024_11
+```
+
+### Highlights
+
++ Fix a bug: Local FDR calculation for orphan PSMs
+
+### Changes in detail
+
++ PeakFDRer: Fixing a bug. The Local FDR calculation for orphan PSMs.
+
+___
 ## 1.0
 ```
 DATE: 2024_11
