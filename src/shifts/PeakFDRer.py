@@ -204,7 +204,7 @@ def get_local_FDR(df, score_column, localFDR_orphans):
     if localFDR_orphans: # Calculate and apply local FDR to orphan PSMs only
         dfo = df[df.PeakAssignation!='PEAK'].copy()
         dfp = df[df.PeakAssignation=='PEAK'].copy()
-        dfp['Global_Rank_T'] = dfp['Global_Rank_D'] = dfp['GlobalFDR'] = np.nan
+        dfp['Local_Rank_T'] = dfp['Local_Rank_D'] = dfp['LocalFDR'] = np.nan
     else: # Calculate and apply local FDR to all PSMs
         dfo = df
     # sort bin
