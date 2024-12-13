@@ -261,6 +261,7 @@ def main(file,infile1,fastafile):
     
     dicc_fasta = get_fasta_report(fastafile)
     nfile = 0
+    output = infile1
     for file in open(infile1,"r"): 
         
         nfile = nfile+1
@@ -277,6 +278,7 @@ def main(file,infile1,fastafile):
     
     if nfile == 1:
         df = dfinitial
+        output = file
 
     counts = df[seq_column_name].value_counts() # The number of times that the species appear is saved in the variable count
     df2 = pd.DataFrame(columns=["p","pdm","q","qFreq","pFreq","pd","d","Missing_Cleavage","Truncated","best_scan","Theo_mh","ScanFreq","a","m","n","l","b","e","first_b","first_n","f","k","qdna","qna","qk","qf","qdnaFreq","qnaFreq","qkFreq","qfFreq","A","M","L","N","qdNA","m_left", "m_right"],dtype=float) # Dataframe 2 is created with the aim of 
@@ -716,7 +718,7 @@ def main(file,infile1,fastafile):
 
 
     logging.info("Writing output file")
-    name = infile1[:-4]
+    name = output[:-4]
     df2.to_csv(name+Outfile_suffix+".txt", index=False, sep='\t', encoding='utf-8')
     logging.info('end script')
 
