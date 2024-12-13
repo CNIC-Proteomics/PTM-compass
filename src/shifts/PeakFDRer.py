@@ -244,7 +244,7 @@ def get_global_FDR(df, score_column, peak_label, col_Peak, closestpeak_column,
         dfp['Global_Rank_T'] = dfp['Global_Rank_D'] = dfp['GlobalFDR'] = np.nan
     else: # Calculate and apply global FDR to all PSMs
         dfo = df
-    print("\t\t\t\t\tCalculating in batch: " + batch_value)
+    print("\t\t\t\t\tCalculating in: " + str(batch_value))
     # sort by score
     # if recom_data == 0: # by Comet Xcorr
     #     df.sort_values(by=['Xcor', 'Label'], inplace=True, ascending=False)
@@ -398,18 +398,29 @@ def main(args):
         logging.info("Calculating Global FDR for all (orphan and peak) PSMs")
     logging.info("Deltamass region limit for Global FDR: " + str(dm_region_limit) + " Da")
     if args.ignore_batch or ignore_batch:
-        df = get_global_FDR(("ALL", df),
-                            score_column,
-                            peak_label,
-                            col_Peak,
-                            closestpeak_column,
-                            dm_column,
-                            dm_region_limit,
-                            globalFDR_orphans,
-                            n_workers)
+        # df = get_global_FDR(("ALL", df),
+        #                     score_column,
+        #                     peak_label,
+        #                     col_Peak,
+        #                     closestpeak_column,
+        #                     dm_column,
+        #                     dm_region_limit,
+        #                     globalFDR_orphans,
+        #                     n_workers)
+        with concurrent.futures.ProcessPoolExecutor(max_workers=n_workers) as executor:
+            df = executor.map(get_global_FDR, list(df.groupby('Experiment')), repeat(score_column),
+                                                                              #repeat(recom_data),
+                                                                              repeat(peak_label),
+                                                                              repeat(col_Peak),
+                                                                              repeat(closestpeak_column),
+                                                                              repeat(dm_column),
+                                                                              repeat(dm_region_limit),
+                                                                              repeat(globalFDR_orphans),
+                                                                              repeat(n_workers))
+        df = pd.concat(df)
     else:
         with concurrent.futures.ProcessPoolExecutor(max_workers=n_workers) as executor:
-            df = executor.map(get_global_FDR, list(df.groupby('Batch')), repeat(score_column),
+            df = executor.map(get_global_FDR, list(df.groupby(['Experiment', 'Batch'])), repeat(score_column),
                                                                               #repeat(recom_data),
                                                                               repeat(peak_label),
                                                                               repeat(col_Peak),
@@ -426,7 +437,7 @@ def main(args):
         logging.info("Calculating Local FDR for all (orphan and peak) PSMs")
     logging.info("Calculating Peak FDR for peak PSMs")
     with concurrent.futures.ProcessPoolExecutor(max_workers=n_workers) as executor:        
-        df = executor.map(bin_operations, list(df.groupby('LocalBin')), repeat(score_column),
+        df = executor.map(bin_operations, list(df.groupby(['Experiment', 'LocalBin'])), repeat(score_column),
                                                                    #repeat(recom_data), 
                                                                    repeat(peak_label),
                                                                    repeat(col_Peak),
