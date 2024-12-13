@@ -26,25 +26,29 @@ def main(args):
     Main function
     '''
     # Main variables
-    logging.info('Read input file')
-    df = pd.read_csv(args.infile, sep="\t", float_precision='high')
-    
-    logging.info("Write output files:")
-    dfs = df.groupby(str(args.column))
+    logging.info('Read input file...')
+    df = pd.read_csv(args.infile, sep="\t", float_precision='high', low_memory=False)
+
+    logging.info('Prepare workspace...')
     if args.output:
         group_path = args.output
     else:
         group_path = os.path.dirname(args.infile)
-    for group in list(dfs.groups.keys()):
-        if not os.path.exists(group_path):
-            os.mkdir(group_path)
+    if not os.path.exists(group_path):
+        os.makedirs(group_path)
+
+    logging.info(f"Write output files grouping by {args.column}:")        
+    dfs = df.groupby(str(args.column))
+    for group, group_df in dfs:
         if group == 'N/A':
             outfile = os.path.join(group_path, Path(args.infile).stem + '_Unassigned_FDR.tsv')
         else:
-            outfile = os.path.join(group_path, Path(args.infile).stem + '_' + group + '_FDR.tsv')
-        group_df = dfs.get_group(group)
-        logging.info('\t' + group + ': ' + str(outfile))
+            outfile = os.path.join(group_path, Path(args.infile).stem + '_' + str(group) + '_FDR.tsv')
+        
+        logging.info('\t' + str(group) + ': ' + str(outfile))
+        # Write the group to a file without duplicating headers
         group_df.to_csv(outfile, index=False, sep='\t', encoding='utf-8')
+        
 
 
 if __name__ == '__main__':
@@ -53,10 +57,10 @@ if __name__ == '__main__':
 
     # parse arguments
     parser = argparse.ArgumentParser(
-        description='Peak FDRer',
+        description='Split the file into Experiment values',
         epilog='''
         Example:
-            python PeakFDRer.py
+            python EXperimentSeparator.py
 
         ''')
     
