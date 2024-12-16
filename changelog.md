@@ -1,4 +1,22 @@
 ___
+## 1.2
+```
+DATE: 2024_12
+```
+
+### Highlights
+
++ PDMTableMaker is executed using Experiment column.
+
++ The 'FreqProcessor' has been added.
+
+### Changes in detail
+
++ PDMTableMaker is executed using Experiment column.
+
++ The 'FreqProcessor' has been added to replace the old 'PGM_Processor' program. It extracts the PGM and PDM frequencies.
+
+___
 ## 1.1
 ```
 DATE: 2024_11
