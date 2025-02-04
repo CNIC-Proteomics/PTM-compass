@@ -251,7 +251,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     if args.config:
-        config = configparser.ConfigParser()
+        config = configparser.ConfigParser(inline_comment_prefixes='#')
         config.read(args.config)
         params = dict(config.items('BinomialSiteListMaker_Parameters'))
         params['x'] = int(params['x'])
