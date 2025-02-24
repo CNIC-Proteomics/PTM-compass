@@ -205,7 +205,6 @@ if __name__ == '__main__':
 
     if '*' in ifile: # wildcard
         flist = glob.glob(ifile)
-        print( flist )
         for f in flist:
             # create ofiles
             of = os.path.join( outdir, os.path.basename(f) )
