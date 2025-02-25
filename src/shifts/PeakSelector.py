@@ -48,7 +48,7 @@ def firstAndLastApex(apex_list):
     new_apex_list.append(apex_list[-1])
     return new_apex_list
 
-def extract_slopes(df_hist,x2,m,intercept,dm0,dm1):
+def extract_slopes(df_hist,x2,m,intercept,dm0,dm1,bin_width):
 
     try:
 
@@ -76,16 +76,16 @@ def extract_slopes(df_hist,x2,m,intercept,dm0,dm1):
             
             else:
 
-                for a in range(j,len(pointtocheck)-500,500):
-                    if a+500<=len(pointtocheck):
-                        points.append(max(slope[a:a+500]))
+                for a in range(j,len(pointtocheck)-bin_width,bin_width):
+                    if a+bin_width<=len(pointtocheck):
+                        points.append(max(slope[a:a+bin_width]))
                     else:
                         points.append(max(slope[a:]))
                         break
 
                 break
         
-
+        # print(len(points),len(predicted_centers))
         points=points[:len(predicted_centers)]
         df_result= pd.DataFrame({'predicted_centers':predicted_centers,'slopes':points})
         df_result=df_result[df_result['slopes']>0].reset_index(drop=True)
@@ -395,6 +395,8 @@ def main(args):
     dm0=int(config._sections['PeakSelector']['dm0'])
     dm1=int(config._sections['PeakSelector']['dm1'])
     ci_removal=float(config._sections['PeakSelector']['ci_interval'])
+    bin_width=int(1/float(config._sections['PeakModeller']['bins']))
+    # print(bin_width)
     # path_pi=str(config._sections['PeakSelector']['path_pi'])
     # config_pi=str(config._sections['PeakSelector']['config_pi'])
     #apex_massdiff = float(config._sections['PeakSelector']['apex_massdiff'])
@@ -415,7 +417,7 @@ def main(args):
 
     logging.info("Calculating maximum slopes...")
     
-    maximum_slopes=extract_slopes(df_hist,x2,m,intercept,dm0,dm1)
+    maximum_slopes=extract_slopes(df_hist,x2,m,intercept,dm0,dm1,bin_width)
     curve,df_toplot =modelate_threshold(maximum_slopes,ci_removal)
 
     logging.info('Plotting fitting')
