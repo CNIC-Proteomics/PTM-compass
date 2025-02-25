@@ -1,6 +1,6 @@
 ## Test 1
 
-Test from MSFragger results in open search. Heteroplasmia (heart)
+Test from MSFragger results in open search. Heteroplasmia (muscle)
 
 Dowloand test
 
