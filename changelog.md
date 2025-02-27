@@ -5,7 +5,9 @@ ___
 
 ### Changes in detail
 
-+ Fixed a bug in the 'PeakSelector' related to the bin width.
++ PeakSelector:
+  - Fixed a bug in the 'PeakSelector' related to the bin width.
+  - Duplicate bin params in config
 
 ___
 ## 1.2
