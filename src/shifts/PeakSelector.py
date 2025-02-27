@@ -395,7 +395,7 @@ def main(args):
     dm0=int(config._sections['PeakSelector']['dm0'])
     dm1=int(config._sections['PeakSelector']['dm1'])
     ci_removal=float(config._sections['PeakSelector']['ci_interval'])
-    bin_width=int(1/float(config._sections['PeakModeller']['bins']))
+    bin_width=int(1/float(config._sections['PeakSelector']['bins']))
     # print(bin_width)
     # path_pi=str(config._sections['PeakSelector']['path_pi'])
     # config_pi=str(config._sections['PeakSelector']['config_pi'])
