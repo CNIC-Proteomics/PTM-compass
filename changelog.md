@@ -1,8 +1,18 @@
 ___
+## 1.3
+
+### Date 📅 *2025_02*
+
+### Changes in detail
+
++ PeakSelector:
+  - Fixed a bug in the 'PeakSelector' related to the bin width.
+  - Duplicate bin params in config
+
+___
 ## 1.2
-```
-DATE: 2024_12
-```
+
+### Date 📅 *2024_12*
 
 ### Highlights
 

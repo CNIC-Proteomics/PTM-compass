@@ -51,7 +51,7 @@ For comprehensive instructions on using each module, please refer to the **[Modu
 
 ## Example Commands
 
-For additional examples and tests, please consult the **[Test Guide](TEST.md)**.
+For additional examples and tests, please consult the **[Test Guide](TESTS.md)**.
 
 
 # License
