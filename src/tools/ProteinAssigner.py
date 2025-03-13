@@ -486,7 +486,7 @@ def getMostProbableProtein(df, paramsDict, q2len={}):
 
 def writeDF(filePath, outFilePath, df):
     df_i = df.loc[df['_filePaths'] == filePath, :].copy()
-    df_i.dropna(axis=1, how='all', inplace=True)
+    # df_i.dropna(axis=1, how='all', inplace=True) # remove this line because it deletes columns that are empty, but they are needed.
     df_i.drop(labels='_filePaths', axis=1, inplace=True)
     #outFilePath = f"{os.path.splitext(filePath)[0]}_{suffixScript}{os.path.splitext(filePath)[1]}"
     df_i.to_csv(outFilePath, sep="\t", index=False)
