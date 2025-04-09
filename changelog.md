@@ -1,4 +1,19 @@
 ___
+## 1.4
+
+### Date 📅 *2025_04*
+
+### Changes in detail
+
++ Rename the 'qf' column to 'qc' to maintain consistency with the manuscript's nomenclature.
++ The ReFrag (REFMOD) code is deprecated here. It will be used in the `nf-SearchEngine` pipeline.
++ Updated the documentation and test guide.
++ Fixing a minor bug: BinomialSiteListMaker now accepts comments in the given parameter file using the '#' character.
++ ProteinAssigner:
+    - Fixing a bug: Remove this line because it deletes columns that are empty, but they are needed.
+
+
+___
 ## 1.3
 
 ### Date 📅 *2025_02*
