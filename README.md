@@ -4,43 +4,24 @@ PTM-compass is a toolset for adapting and analyzing search engine results from m
 
 # Installation
 
-To install PTM-compass, clone this repository and ensure you have Python installed:
+## Download the last release
+
++ Download the ReportAnalysis-vx.xx.zip from the last release and unzip the file:
+https://github.com/CNIC-Proteomics/ReportAnalysis/releases
+
+or
+
++ Clone the repository using the last release tag:
 
 ```bash
-git clone https://github.com/CNIC-Proteomics/PTM-compass.git
-cd PTM-compass
+git clone https://github.com/CNIC-Proteomics/PTM-compass.git --branch {LAST_RELEASE_TAG}
 ```
 
-## Setting Up a Virtual Environment
+## Install Python
 
-It’s recommended to create a virtual environment to manage dependencies for SHIFTS.
+Ensure Python is installed on your system along with the required dependencies.
 
-1. **Create a virtual environment**:
-
-    ```bash
-    python -m venv env
-    ```
-
-2. **Activate the virtual environment**:
-
-   - On **Windows**:
-     ```bash
-     .\env\Scripts\activate
-     ```
-   - On **macOS and Linux**:
-     ```bash
-     source env/bin/activate
-     ```
-
-3. **Install required dependencies**:
-
-    ```bash
-    pip install -r python_requirements.txt
-    ```
-
-## Requirements
-
-The PTM-compass programs require Python 3.6 or above. All other dependencies are listed in the `python_requirements.txt` file.
+For further information, consult the [INSTALLATION Guide](INSTALLATION.md).
 
 
 # Modules
@@ -49,7 +30,8 @@ Each PTM-Compass module is designed with specific functionality and configurable
 
 For comprehensive instructions on using each module, please refer to the **[Module Guide](MODULES.md)**.
 
-## Example Commands
+
+# Example Commands
 
 For additional examples and tests, please consult the **[Test Guide](TESTS.md)**.
 
