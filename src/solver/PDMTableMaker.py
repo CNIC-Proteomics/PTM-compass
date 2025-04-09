@@ -281,7 +281,7 @@ def main(file,infile1,fastafile):
         output = file
 
     counts = df[seq_column_name].value_counts() # The number of times that the species appear is saved in the variable count
-    df2 = pd.DataFrame(columns=["p","pdm","q","qFreq","pFreq","pd","d","Missing_Cleavage","Truncated","best_scan","Theo_mh","ScanFreq","a","m","n","l","b","e","first_b","first_n","f","k","qdna","qna","qk","qf","qdnaFreq","qnaFreq","qkFreq","qfFreq","A","M","L","N","qdNA","m_left", "m_right"],dtype=float) # Dataframe 2 is created with the aim of 
+    df2 = pd.DataFrame(columns=["p","pdm","q","qFreq","pFreq","pd","d","Missing_Cleavage","Truncated","best_scan","Theo_mh","ScanFreq","a","m","n","l","b","e","first_b","first_n","c","k","qdna","qna","qk","qc","qdnaFreq","qnaFreq","qkFreq","qcFreq","A","M","L","N","qdNA","m_left", "m_right"],dtype=float) # Dataframe 2 is created with the aim of 
 
     cont = 0
     seqlist = [] # In this list it will be saved the sequences already analyzed
@@ -615,7 +615,7 @@ def main(file,infile1,fastafile):
 
                 
     dic_qk_freq = {}
-    dic_qf_freq = {}
+    dic_qc_freq = {}
     cont2 = 0
     for index, row in df2.iterrows(): # A M and  L columns are added 
         d = row["d"] 
@@ -630,15 +630,15 @@ def main(file,infile1,fastafile):
         
             if row["b"].find(";")!=-1: 
 
-                f = dic_b_e_mn[row["q"]][row["p"]][row["pdm"]]
+                c = dic_b_e_mn[row["q"]][row["p"]][row["pdm"]]
             else: 
 
-                f = dic_cluster[row["q"]][row["p"]]
+                c = dic_cluster[row["q"]][row["p"]]
 
 
-            df2.loc[cont2,"f"]= f.replace("ene","1")
-            qf = row["q"]+":"+f 
-            df2.loc[cont2,"qf"]= qf
+            df2.loc[cont2,"c"]= c.replace("ene","1")
+            qc = row["q"]+":"+c 
+            df2.loc[cont2,"qc"]= qc
 
 
 
@@ -663,12 +663,12 @@ def main(file,infile1,fastafile):
                  dic_qk_freq[qk]=dic_qk_freq[qk]+row["ScanFreq"]
 
 
-            if qf not in  dic_qf_freq.keys():
-                dic_qf_freq[qf]=row["ScanFreq"]
+            if qc not in  dic_qc_freq.keys():
+                dic_qc_freq[qc]=row["ScanFreq"]
 
 
             else:
-                 dic_qf_freq[qf]=dic_qf_freq[qf]+row["ScanFreq"]
+                 dic_qc_freq[qc]=dic_qc_freq[qc]+row["ScanFreq"]
 
             df2.loc[cont2,"qdnaFreq"]= dic_qdna_freq[row["qdna"]]
             df2.loc[cont2,"qnaFreq"]= dic_qna_freq[row["qna"]]
@@ -711,7 +711,7 @@ def main(file,infile1,fastafile):
       
             df2.loc[cont3,"best_scan"]= scoredic[row["pdm"]][0]
             df2.loc[cont3,"qkFreq"]= dic_qk_freq[row["qk"]]
-            df2.loc[cont3,"qfFreq"]= dic_qf_freq[row["qf"]]
+            df2.loc[cont3,"qcFreq"]= dic_qc_freq[row["qc"]]
             cont3 = cont3+1
         except: 
             pass
