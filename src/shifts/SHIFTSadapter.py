@@ -21,6 +21,7 @@ import logging
 import glob
 import pandas as pd
 import math
+import numpy as np
 import re
 from pathlib import Path
 
@@ -142,6 +143,31 @@ def preprocessing_msfragger(input_df):
 
     return input_df
 
+def preprocessing_refrag(input_df):
+
+    # Process file
+    logging.info("Calculating precursor_MH and precursor_MZ...")
+    input_df['precursor_MH'] = (input_df.precursor_neutral_mass + 1.007276)
+    input_df['precursor_MZ'] = (input_df.precursor_MH + (input_df.charge-1)*1.007276) / input_df.charge
+
+    logging.info("Finding modification sites...")
+    input_df['m_RF_position'] = input_df.apply(lambda row: '_'+str(len(row['peptide'])) if row['REFRAG_site'] in [np.nan, np.NaN, None, "None"] else row['REFRAG_site'][:1]+str(int(row['REFRAG_site'][1:])-1), axis=1)
+    input_df['m_RF'] = input_df['m_RF_position'].str[1:].astype(int) + 1
+    
+    logging.info("Updating 'delta_peptide' column based on positions...")
+    input_df['delta_peptide'] = input_df['peptide']
+
+    # Vectorized update of delta_peptide column
+    logging.info("Updating peptides where modifications involve mass differences...")
+    mask = input_df['m_RF_position'].str.contains('_')
+    input_df.loc[mask, 'delta_peptide'] = input_df.loc[mask, 'peptide'] + '_' + input_df.loc[mask, 'massdiff'].astype(str)
+    non_mask = ~mask
+    input_df.loc[non_mask, 'delta_peptide'] = input_df.loc[non_mask].apply(
+        lambda row: row['delta_peptide'][:row['m_RF']] + f"[{row['massdiff']}]" + row['delta_peptide'][row['m_RF']:], axis=1
+    )
+
+    return input_df
+
 # Generate the Scan ID from the Spectrum File and the provided parameters
 def add_scanId(df, ifile, ids):
 
@@ -180,8 +206,12 @@ def main(ifile, ofile):
     else:
         logging.info('Reading the "msfragger" data file...')
         df = pd.read_csv(ifile, sep='\t', float_precision='high', low_memory=False, index_col=False)
-        search_engine_name = 'msfragger'
-        ids = ['scannum','charge']
+        if "REFRAG" in "\t".join(df.columns):
+            search_engine_name = 'refrag'
+            ids = ['scannum','charge']
+        else:
+            search_engine_name = 'msfragger'
+            ids = ['scannum','charge']
     logging.info(f"File {ifile} loaded successfully with {len(df)} rows.")
 
 
@@ -193,6 +223,8 @@ def main(ifile, ofile):
     # process the MSFragger results
     if search_engine_name == 'msfragger':
         df = preprocessing_msfragger(df)
+    elif search_engine_name == 'refrag':
+        df = preprocessing_refrag(df)
     
     # write file
     logging.info(f"Output file will be saved as: {ofile}")
