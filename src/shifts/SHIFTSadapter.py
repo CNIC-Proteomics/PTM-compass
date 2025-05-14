@@ -166,7 +166,7 @@ def preprocessing_refrag(input_df):
 
     # Vectorized update of delta_peptide column
     logging.info("Updating peptides where modifications involve mass differences...")
-    input_df.loc[mask, 'delta_peptide'] = input_df.loc[mask, 'peptide'] + '_0'
+    input_df.loc[mask, 'delta_peptide'] = input_df.loc[mask, 'peptide']
     input_df.loc[non_mask, 'delta_peptide'] = input_df.loc[non_mask].apply(
         lambda row: row['delta_peptide'][:row['m_RF']] + f"[{row['massdiff']}]" + row['delta_peptide'][row['m_RF']:], axis=1
     )
