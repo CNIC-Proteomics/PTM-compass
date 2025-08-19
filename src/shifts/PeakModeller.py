@@ -6,7 +6,7 @@
 __author__ = "Andrea Laguillo Gómez"
 __credits__ = ["Andrea Laguillo Gómez", "Jose Rodriguez", "Jesus Vazquez"]
 __license__ = "Creative Commons Attribution-NonCommercial-NoDerivs 4.0 Unported License https://creativecommons.org/licenses/by-nc-nd/4.0/"
-__version__ = "0.3.0"
+__version__ = "0.3.1"
 __maintainer__ = "Jose Rodriguez"
 __email__ = "andrea.laguillo@cnic.es;jmrodriguezc@cnic.es"
 __status__ = "Development"
@@ -73,7 +73,7 @@ def concatInfiles(infile):
     df['Filename'] = df['Filename'].astype('category')
     return df
 
-def generate_histogram(df, bin_width):
+def generate_histogram(df, bin_width, dm0, dm1):
     '''
     Group by DeltaMass into bins of the size specified.
     '''
@@ -89,8 +89,8 @@ def generate_histogram(df, bin_width):
     df.reset_index(drop=True, inplace=True)
     
     # make bins
-    bins = list(np.arange(int(round(df['cal_dm_mh'][0])),
-                          int(round(df['cal_dm_mh'].iloc[-1]))+bin_width,
+    bins = list(np.arange(dm0,
+                          dm1+bin_width,
                           bin_width))
     bins = [round(x, _decimal_places(bin_width)) for x in bins]
     df['bin'] = pd.cut(df['cal_dm_mh'], bins=bins)
@@ -269,6 +269,10 @@ def main(args):
     bins = float(config._sections['PeakModeller']['bins'])
     slope_points = int(config._sections['PeakModeller']['slope_points'])
     smooth_points = int(config._sections['PeakModeller']['smooth_points'])
+
+    # Read from Peak Selector parameters the dm0 and dm1 values
+    dm0 = int(config._sections['PeakSelector']['dm0'])
+    dm1 = int(config._sections['PeakSelector']['dm1'])
     
     logging.info("Reading input file list...")
     if '*' in args.infile: # wildcard
@@ -334,7 +338,7 @@ def main(args):
         
             logging.info("Generating DMHistogram...")
             # make bins
-            df_copy, bins_df = generate_histogram(df_copy, bins)
+            df_copy, bins_df = generate_histogram(df_copy, bins, dm0, dm1)
             # calculate derivatives
             #grouped_bins_df = bins_df.groupby(['bin'])
             bins_df = first_derivative(bins_df, #does 1st smoothing pass and 2nd normal pass
