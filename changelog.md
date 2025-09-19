@@ -1,4 +1,18 @@
 ___
+## 1.5
+
+### Date 📅 *2025_09*
+
+### Changes in detail
+
+**rc1**
++ Updated parameters. By default, show the unassigned modifications in the BinomialSiteListMaker.
++ DMcalibrator: Add calibrated dm column for refrag data.
++ SHIFTSadapter: Detect Refrag input and generate delta_peptide using modification site data from Refrag.
++ Updated documentation: Zenodo repository.
+
+
+___
 ## 1.4
 
 ### Date 📅 *2025_04*
