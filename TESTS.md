@@ -15,7 +15,7 @@ Input files for PTM-compass, derived from the study by Bagwan N, Bonzon-Kulichen
 + On Linux:
 ```bash
 cd samples && \
-wget https://zenodo.org/records/15182445/files/heteroplasmic_heart.zip?download=1 -O heteroplasmic_heart.zip && \
+wget https://zenodo.org/records/17159646/files/heteroplasmic_heart.zip?download=1 -O heteroplasmic_heart.zip && \
 unzip heteroplasmic_heart.zip && \
 cd ..
 ```
@@ -27,7 +27,7 @@ or
 @echo off
 mkdir samples
 cd samples
-curl -L -o heteroplasmic_heart.zip https://zenodo.org/records/15182445/files/heteroplasmic_heart.zip?download=1 
+curl -L -o heteroplasmic_heart.zip https://zenodo.org/records/17159646/files/heteroplasmic_heart.zip?download=1 
 powershell -Command "Expand-Archive -Path heteroplasmic_heart.zip -DestinationPath ."
 cd ..
 ```
@@ -66,7 +66,7 @@ python src/shifts/PeakSelector.py -i samples/heteroplasmic_heart/results/DMHisto
 
 6. PeakInspector:
 ```bash
-python src/shifts/PeakInspector.py -i samples/heteroplasmic_heart/results/DMHistogram.tsv -c samples/heteroplasmic_heart/inputs/params.ini
+python src/shifts/PeakInspector.py -i samples/heteroplasmic_heart/results/PeakSelector_DMHistogram.tsv -c samples/heteroplasmic_heart/inputs/params.ini
 ```
 
 7. PeakAssignator:
@@ -150,7 +150,7 @@ python src/solver/FreqProcessor.py -i samples/heteroplasmic_heart/results/DMTabl
 
 You can download the input files for this `liver` sample from the study by Bagwan N, Bonzon-Kulichenko E, Calvo E, et al. [1] at the following URL:
 
-https://zenodo.org/records/15182445/files/heteroplasmic_liver.zip?download=1
+https://zenodo.org/records/17159646/files/heteroplasmic_liver.zip?download=1
 
 To execute the pipeline, follow the same steps as in Sample 1.
 
@@ -160,7 +160,7 @@ To execute the pipeline, follow the same steps as in Sample 1.
 
 You can download the input files for this `muscle` sample from the study by Bagwan N, Bonzon-Kulichenko E, Calvo E, et al. [1] at the following URL:
 
-https://zenodo.org/records/15182445/files/heteroplasmic_muscle.zip?download=1
+https://zenodo.org/records/17159646/files/heteroplasmic_muscle.zip?download=1
 
 To execute the pipeline, follow the same steps as in Sample 1.
 
