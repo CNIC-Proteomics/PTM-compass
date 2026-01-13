@@ -1,4 +1,17 @@
 ___
+## 1.6
+
+### Date 📅 *2026_01*
+
+### Changes in detail
+
+**rc1**
++ Processing of refmod search results.
++ Fixed minor bugs.
+
+
+
+___
 ## 1.5
 
 ### Date 📅 *2025_09*
