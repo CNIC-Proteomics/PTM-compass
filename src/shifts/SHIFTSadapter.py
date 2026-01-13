@@ -170,7 +170,7 @@ def preprocessing_refmod(input_df):
     input_df.loc[mask, 'delta_peptide'] = input_df.loc[mask, 'peptide'] + '_' + input_df.loc[mask, 'REFMOD_DM'].astype(str)
     non_mask = ~mask
     input_df.loc[non_mask, 'delta_peptide'] = input_df.loc[non_mask].apply(
-        lambda row: row['delta_peptide'][:row['m_MSF']] + f"[{row['REFMOD_DM']}]" + row['delta_peptide'][row['m_RF']:], axis=1
+        lambda row: row['delta_peptide'][:row['m_RF']] + f"[{row['REFMOD_DM']}]" + row['delta_peptide'][row['m_RF']:], axis=1
     )
 
     return input_df
