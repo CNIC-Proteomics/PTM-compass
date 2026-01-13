@@ -143,7 +143,7 @@ def preprocessing_msfragger(input_df):
 
     return input_df
 
-def preprocessing_refrag(input_df):
+def preprocessing_refmod(input_df):
 
     # Process file
     logging.info("Calculating precursor_MH and precursor_MZ...")
@@ -151,24 +151,26 @@ def preprocessing_refrag(input_df):
     input_df['precursor_MZ'] = (input_df.precursor_MH + (input_df.charge-1)*1.007276) / input_df.charge
 
     logging.info("Finding modification sites...")
-    input_df['m_RF_position'] = input_df.apply(lambda row: '_' if row['REFRAG_site'] in [np.nan, np.NaN, None, "None"] else row['REFRAG_site'][:1]+str(int(row['REFRAG_site'][1:])-1), axis=1)
-    # get non-modified mask and modified mask
-    mask = input_df['m_RF_position'].str.contains('_')
-    non_mask = ~mask
+    input_df['m_RF_positions'] = input_df['REFMOD_site_range'].apply(msf_pos)
 
-    logging.info("Getting 'position' column...")
-    input_df['m_RF'] = 0
-    # increase in one the modified position
-    input_df.loc[non_mask, 'm_RF'] = input_df.loc[non_mask, 'm_RF_position'].str[1:].astype(int) + 1
+    logging.info("Selecting the modification site (center of aa distribution if multiple)...")
+    input_df['m_RF'] = input_df.apply(lambda row: row['m_RF_positions'].split(";")[math.ceil(len(row['m_RF_positions'].split(";"))/2)-1] if len(row['m_RF_positions'].split(";"))>1 else row['m_RF_positions'], axis=1)
+    input_df['m_RF'] = input_df['m_RF'].str[1:].astype(int) + 1
     
+    logging.info("Calculating left and right positions of modification...")
+    input_df['m_RF_left'] = input_df.apply(lambda row: len(row['m_RF_positions'].split(";"))-(len(row['m_RF_positions'].split(";"))-math.ceil(len(row['m_RF_positions'].split(";"))/2))-1 if len(row['m_RF_positions'].split(";"))>1 else 0, axis=1)
+    input_df['m_RF_right'] = input_df.apply(lambda row: len(row['m_RF_positions'].split(";"))-math.ceil(len(row['m_RF_positions'].split(";"))/2) if len(row['m_RF_positions'].split(";"))>1 else 0, axis=1)
+        
     logging.info("Updating 'delta_peptide' column based on positions...")
     input_df['delta_peptide'] = input_df['peptide']
 
     # Vectorized update of delta_peptide column
     logging.info("Updating peptides where modifications involve mass differences...")
-    input_df.loc[mask, 'delta_peptide'] = input_df.loc[mask, 'peptide'] + '_' + input_df.loc[mask, 'massdiff'].astype(str)
+    mask = input_df['m_RF_positions'].str.contains('_')
+    input_df.loc[mask, 'delta_peptide'] = input_df.loc[mask, 'peptide'] + '_' + input_df.loc[mask, 'REFMOD_DM'].astype(str)
+    non_mask = ~mask
     input_df.loc[non_mask, 'delta_peptide'] = input_df.loc[non_mask].apply(
-        lambda row: row['delta_peptide'][:row['m_RF']] + f"[{row['massdiff']}]" + row['delta_peptide'][row['m_RF']:], axis=1
+        lambda row: row['delta_peptide'][:row['m_MSF']] + f"[{row['REFMOD_DM']}]" + row['delta_peptide'][row['m_RF']:], axis=1
     )
 
     return input_df
@@ -209,8 +211,8 @@ def main(ifile, ofile):
         search_engine_name = 'comet'
         ids = ['scan','charge']
     else:
-        if any("REFRAG_" in c for c in first_line):
-            search_engine_name = 'refrag'
+        if any("REFMOD_" in c for c in first_line):
+            search_engine_name = 'refmod'
             ids = ['scannum','charge']
         else:
             search_engine_name = 'msfragger'
@@ -229,8 +231,8 @@ def main(ifile, ofile):
     logging.info(f'Processing  {search_engine_name} data...')
     if search_engine_name == 'msfragger':
         df = preprocessing_msfragger(df)
-    elif search_engine_name == 'refrag':
-        df = preprocessing_refrag(df)
+    elif search_engine_name == 'refmod':
+        df = preprocessing_refmod(df)
     
     # write file
     logging.info(f"Output file will be saved as: {ofile}")

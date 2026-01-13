@@ -326,9 +326,9 @@ def main(args):
     # Calculate DMCal 
     df = getDMcal(df, mzcolumn, calmzcolumn, zcolumn)
     #df[calseqcolumn] = df.apply(lambda x: x[seqdmcolumn].split('[')[0] + '[' + str(round(x['cal_dm_mh'], decimal_places)) + ']' + x[seqdmcolumn].split(']')[1], axis = 1)
-    if 'REFRAG' in '\t'.join(df.columns):
-        df['REFRAG_DM_calibrated'] = df.apply(lambda x: x.cal_dm_mh if x.REFRAG_name=='EXPERIMENTAL' else x.REFRAG_DM, axis=1)
-        df[calseqcolumn] = df.apply(lambda x: format_seq(x[seqdmcolumn], x['REFRAG_DM_calibrated'], decimal_places), axis = 1)
+    if 'REFMOD' in '\t'.join(df.columns):
+        df['REFMOD_DM_calibrated'] = df.apply(lambda x: x.cal_dm_mh if x.REFMOD_name=='EXPERIMENTAL' else x.REFMOD_DM, axis=1)
+        df[calseqcolumn] = df.apply(lambda x: format_seq(x[seqdmcolumn], x['REFMOD_DM_calibrated'], decimal_places), axis = 1)
     else:
         df.insert(df.columns.get_loc(seqdmcolumn)+1, calseqcolumn, np.nan)
         df[calseqcolumn] = df.apply(lambda x: format_seq(x[seqdmcolumn], x['cal_dm_mh'], decimal_places), axis = 1)
