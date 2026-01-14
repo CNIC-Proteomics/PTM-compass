@@ -73,7 +73,7 @@ def concatInfiles(infile):
     df['Filename'] = df['Filename'].astype('category')
     return df
 
-def generate_histogram(df, bin_width):
+def generate_histogram(df, bin_width, caldeltamh_column):
     '''
     Group by DeltaMass into bins of the size specified.
     '''
@@ -85,15 +85,15 @@ def generate_histogram(df, bin_width):
         return len(s) - s.index('.') - 1
     
     # sort by deltamass
-    df.sort_values(by=['cal_dm_mh'], inplace=True)
+    df.sort_values(by=[caldeltamh_column], inplace=True)
     df.reset_index(drop=True, inplace=True)
     
     # make bins
-    bins = list(np.arange(int(round(df['cal_dm_mh'][0])),
-                          int(round(df['cal_dm_mh'].iloc[-1]))+bin_width,
+    bins = list(np.arange(int(round(df[caldeltamh_column][0])),
+                          int(round(df[caldeltamh_column].iloc[-1]))+bin_width,
                           bin_width))
     bins = [round(x, _decimal_places(bin_width)) for x in bins]
-    df['bin'] = pd.cut(df['cal_dm_mh'], bins=bins)
+    df['bin'] = pd.cut(df[caldeltamh_column], bins=bins)
     
     # make histogram table
     bins_df = df['bin'].value_counts().to_frame().rename(columns = {'bin':'count'})
@@ -266,6 +266,7 @@ def main(args):
     '''
     
     #Main variables
+    caldeltamh_column = str(config._sections['PeakModeller']['caldeltamh_column'])
     bins = float(config._sections['PeakModeller']['bins'])
     slope_points = int(config._sections['PeakModeller']['slope_points'])
     smooth_points = int(config._sections['PeakModeller']['smooth_points'])
@@ -334,7 +335,7 @@ def main(args):
         
             logging.info("Generating DMHistogram...")
             # make bins
-            df_copy, bins_df = generate_histogram(df_copy, bins)
+            df_copy, bins_df = generate_histogram(df_copy, bins, caldeltamh_column)
             # calculate derivatives
             #grouped_bins_df = bins_df.groupby(['bin'])
             bins_df = first_derivative(bins_df, #does 1st smoothing pass and 2nd normal pass

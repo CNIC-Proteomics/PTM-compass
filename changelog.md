@@ -1,4 +1,15 @@
 ___
+## 1.7
+
+### Date 📅 *2026_01*
+
+### Changes in detail
+
++ PeakModeller: Added caldeltamh_column parameter.
+
+
+
+____
 ## 1.6
 
 ### Date 📅 *2026_01*
