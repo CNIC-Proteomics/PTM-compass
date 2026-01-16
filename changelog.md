@@ -6,6 +6,7 @@ ___
 ### Changes in detail
 
 + PeakModeller: Added caldeltamh_column parameter.
++ Upgrade the Python requeriments for Python versions >= 3.12.
 
 
 
