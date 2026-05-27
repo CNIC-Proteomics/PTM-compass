@@ -179,26 +179,41 @@ def qdna_qna(qId, dqna, n, aa, seq):
             f"{qId}:{dqna}:{n}:U",
             f"{qId}:{n}:U"
         )
+    
+def getA(df_res, mask_m_valid):
+    p_arr = df_res.loc[mask_m_valid, "p"].to_numpy(dtype=object)
+    m_arr = df_res.loc[mask_m_valid, "M"].to_numpy()
+    idx = (m_arr - 1).astype(int)
+    
+    valid = (
+        (m_arr >= 1) &
+        (idx < np.vectorize(len)(p_arr))
+    )
+    
+    res = np.full(len(p_arr), None, dtype=object)
+    res[valid] = [s[i] for s, i in zip(p_arr[valid], idx[valid])]
+    return res
 
-def main(file,infile1,fastafile):
+def main(file, infile1, fastafile):
     config = configparser.ConfigParser(inline_comment_prefixes='#')
     config.read(file)
     logging.info("Reading PDMTableMaker configuration file")  
     
-    seq_column_name = config["PDMTableMaker_Parameters"].get("sequence_column_name") # Sequence with DM column name
-    DM_column_name = config["PDMTableMaker_Parameters"].get("DM_column_name") # DM column name
-    Theo_mh_column_name = config["PDMTableMaker_Parameters"].get("Theo_mh_column_name") # Theoretical column name
-    MasterProtein_column_name =  config["PDMTableMaker_Parameters"].get("MasterProtein_column_name") # Master protien name column name 
-    Outfile_suffix =  config["PDMTableMaker_Parameters"].get("Outfile_suffix") # Chosen suffix for output file
-    nconditions =  config["PDMTableMaker_Conditions"].getint("number_of_conditions") # Number of conditions
-    Missing_Cleavage_column_name =  config["PDMTableMaker_Parameters"].get("Missing_Cleavage_column_name") # Missing cleavage number column name
-    Truncated_column_name =  config["PDMTableMaker_Parameters"].get("Truncated_column_name") # Truncated  column name 
-    Score_column_name =  config["PDMTableMaker_Parameters"].get("Score_column_name") # Score  column name 
-    Score_parameter =  config["PDMTableMaker_Parameters"].get("Score_parameter") # Score parameter column name 
-    ScanID_column_name =  config["PDMTableMaker_Parameters"].get("ScanID_column_name") # ScanID  column name 
-    range_position_left_column_name =  config["PDMTableMaker_Parameters"].get("range_position_left_column_name") # range_position_left_column_name
-    range_position_right_column_name =  config["PDMTableMaker_Parameters"].get("range_position_right_column_name") # range_position_right_column_name
+    params = "PDMTableMaker_Parameters"
+    seq_column_name = config[params].get("sequence_column_name") # Seq. with DM
+    DM_column_name = config[params].get("DM_column_name")
+    Theo_mh_column_name = config[params].get("Theo_mh_column_name")
+    MasterProtein_column_name =  config[params].get("MasterProtein_column_name")
+    Outfile_suffix =  config[params].get("Outfile_suffix")
+    Missing_Cleavage_column_name =  config[params].get("Missing_Cleavage_column_name")
+    Truncated_column_name =  config[params].get("Truncated_column_name")
+    Score_column_name =  config[params].get("Score_column_name")
+    Score_parameter =  config[params].get("Score_parameter")
+    ScanID_column_name =  config[params].get("ScanID_column_name")
+    range_position_left_column_name =  config[params].get("range_position_left_column_name")
+    range_position_right_column_name =  config[params].get("range_position_right_column_name")
     conditions = config["PDMTableMaker_Conditions"]
+    nconditions =  conditions.getint("number_of_conditions")
     
     # Read fasta
     logging.info("Processing fasta file")
@@ -320,32 +335,48 @@ def main(file,infile1,fastafile):
         .sort_values("ScanFreq", ascending=False)
         .drop_duplicates(subset=["p", "d"])
     )
+    
+    # Keep entry with highest ScanFreq
+    df_pdM = df_pdM.loc[df_pdM.groupby(["p", "d"])["ScanFreq"].idxmax()]
+    
     dic_pd_M = {}
-    p_arr = df_pdM["p"].to_numpy()
-    d_arr = df_pdM["d"].to_numpy()
-    sf_arr   = df_pdM["ScanFreq"].to_numpy()
-    m_arr    = df_pdM["m"].to_numpy()
-    l_arr    = df_pdM["l"].to_numpy()
-    n_arr    = df_pdM["n"].to_numpy()
-    qdna_arr = df_pdM["qdna"].to_numpy()
-    qna_arr  = df_pdM["qna"].to_numpy()
-    for i in range(len(p_arr)):
-        p = p_arr[i]
-        d = d_arr[i]
     
-        sub = dic_pd_M.get(p)
-        if sub is None:
-            sub = {}
-            dic_pd_M[p] = sub
-    
-        sub[d] = (
-            sf_arr[i],
-            m_arr[i],
-            l_arr[i],
-            n_arr[i],
-            qdna_arr[i],
-            qna_arr[i],
+    for row in df_pdM.itertuples(index=False):
+        dic_pd_M.setdefault(row.p, {})[row.d] = (
+            row.ScanFreq,
+            row.m,
+            row.l,
+            row.n,
+            row.qdna,
+            row.qna,
         )
+
+    # dic_pd_M = {}
+    # p_arr = df_pdM["p"].to_numpy()
+    # d_arr = df_pdM["d"].to_numpy()
+    # sf_arr   = df_pdM["ScanFreq"].to_numpy()
+    # m_arr    = df_pdM["m"].to_numpy()
+    # l_arr    = df_pdM["l"].to_numpy()
+    # n_arr    = df_pdM["n"].to_numpy()
+    # qdna_arr = df_pdM["qdna"].to_numpy()
+    # qna_arr  = df_pdM["qna"].to_numpy()
+    # for i in range(len(p_arr)):
+    #     p = p_arr[i]
+    #     d = d_arr[i]
+    
+    #     sub = dic_pd_M.get(p)
+    #     if sub is None:
+    #         sub = {}
+    #         dic_pd_M[p] = sub
+    
+    #     sub[d] = (
+    #         sf_arr[i],
+    #         m_arr[i],
+    #         l_arr[i],
+    #         n_arr[i],
+    #         qdna_arr[i],
+    #         qna_arr[i],
+    #     )
 
     # Make dic_b_e (just one b value)
     df_single_b = df_res[~df_res["b"].str.contains(";")]
@@ -622,6 +653,7 @@ def main(file,infile1,fastafile):
         for d, vals in inner.items()
     }
     
+    df_res["A"] = None
     df_res["M"] = np.nan
     df_res["L"] = np.nan
     df_res["N"] = None
@@ -643,6 +675,9 @@ def main(file,infile1,fastafile):
     df_res.loc[mask_valid, "N"] = [v[3] if v else None for v in vals]
     df_res.loc[mask_valid, "qdNA"] = [v[4] if v else None for v in vals]
     df_res.loc[mask_valid, "qNA"] = [v[5] if v else None for v in vals]
+    
+    mask_m_valid = df_res["M"].notna()
+    df_res.loc[mask_m_valid, "A"] = getA(df_res, mask_m_valid)
     
     # Default values for invalid cases
     df_res.loc[mask_pdm, "M"] = np.nan
@@ -666,13 +701,16 @@ def main(file,infile1,fastafile):
     df_res["qcFreq"] = df_res["qc"].map(dic_qc_freq)
     
     # cleanup
+    df_res.M = df_res.M.astype(int)
+    df_res.L = df_res.L.astype(int)
     df_res = df_res[[
         "p", "pdm", "q", "qFreq", "pFreq", "pd", "d", "Missing_Cleavage",
-        "Truncated", "best_scan", "Theo_mh", "ScanFreq", "a", "m", "l", "b",
-        "e", "first_b", "first_n", "c", "k", "qdna", "qna", "qc", "qk",
+        "Truncated", "best_scan", "Theo_mh", "ScanFreq", "a", "m", "n", "l",
+        "b", "e", "first_b", "first_n", "c", "k", "qdna", "qna", "qc", "qk",
         "qdnaFreq", "qnaFreq", "qkFreq", "qcFreq", "A", "M", "L", "N", "qdNA",
         "m_left", "m_right", "qNA"
         ]]
+    # TODO A is empty, L and N are different by 1 sometimes, qdNA and qNA also different from joining the other ones
     
     logging.info("Writing output file")
     df_res.to_csv(out_name, index=False, sep='\t', encoding='utf-8')
@@ -692,12 +730,17 @@ if __name__ == '__main__':
         ''')
       
     # default DM0Solver configuration file
-    defaultconfig = os.path.join(os.path.dirname(__file__), "config/Solver.ini")
+    defaultconfig = os.path.join(os.path.dirname(__file__),
+                                 "config/Solver.ini")
     
-    parser.add_argument('-i', '--infile', required=True, help='Input file with paths of the file(s) ')
-    parser.add_argument('-f', '--fastafile', required=True, help='Path to input file')
-    parser.add_argument('-c', '--config', default=defaultconfig, help='Path to custom config.ini file')
-    parser.add_argument('-v', dest='verbose', action='store_true', help="Increase output verbosity")
+    parser.add_argument('-i', '--infile', required=True,
+                        help='Input file with paths of the file(s) ')
+    parser.add_argument('-f', '--fastafile', required=True,
+                        help='Path to input file')
+    parser.add_argument('-c', '--config', default=defaultconfig,
+                        help='Path to custom config.ini file')
+    parser.add_argument('-v', dest='verbose', action='store_true',
+                        help="Increase output verbosity")
     
     args = parser.parse_args()
     # logging debug level. By default, info level
