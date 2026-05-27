@@ -256,10 +256,12 @@ def main(file, infile1, fastafile):
     # Make dicc_m_left and dicc_m_right dictionaries
     if range_position_left_column_name != "":
         # lower = better
-        df_f = df.loc[df.groupby(seq_column_name)[range_position_left_column_name].idxmin()]
+        df_f = df.loc[df.groupby(seq_column_name)
+                      [range_position_left_column_name].idxmin()]
         dicc_m_left = dict(zip(df_f[seq_column_name],
                                df_f[range_position_left_column_name]))
-        df_f = df.loc[df.groupby(seq_column_name)[range_position_right_column_name].idxmin()]
+        df_f = df.loc[df.groupby(seq_column_name)
+                      [range_position_right_column_name].idxmin()]
         dicc_m_right = dict(zip(df_f[seq_column_name],
                                df_f[range_position_right_column_name]))
     else: # keep empty
@@ -324,7 +326,9 @@ def main(file, infile1, fastafile):
     # Make dic_b_e (just one b value)
     df_single_b = df_res[~df_res["b"].str.contains(";")]
     dic_b_e = {
-        q: dict(zip(group["p"], zip(group["b"].astype(int), group["e"].astype(int))))
+        q: dict(zip(group["p"],
+                    zip(group["b"].astype(int),
+                        group["e"].astype(int))))
         for q, group in df_single_b.groupby("q")
     }
     
@@ -400,7 +404,8 @@ def main(file, infile1, fastafile):
         min_nb = 2000000000
         max_ne = 0 
         lista= []
-        sorted_q_b_e_qna = OrderedDict(sorted(dic_qna_p_sort[q].items(), key=lambda x: x[1]))
+        sorted_q_b_e_qna = OrderedDict(sorted(dic_qna_p_sort[q].items(),
+                                              key=lambda x: x[1]))
         p_number = 0 
         dic_qna_cluster[q]={}
         longitud = len(dic_qna_p_sort[q].values())
@@ -453,7 +458,8 @@ def main(file, infile1, fastafile):
         min_b = 2000000000
         max_e = 0 
         lista= []
-        sorted_q_b_e = OrderedDict(sorted(dic_b_e[q].items(), key=lambda x: x[1]))
+        sorted_q_b_e = OrderedDict(sorted(dic_b_e[q].items(),
+                                          key=lambda x: x[1]))
         p_number = 0 
         dic_cluster[q]={}
         longitud = len(dic_b_e[q].values())
@@ -590,19 +596,8 @@ def main(file, infile1, fastafile):
     dic_qk_freq = df_res.groupby("qk")["ScanFreq"].sum().to_dict()
     dic_qc_freq = df_res.groupby("qc")["ScanFreq"].sum().to_dict()
     
-    # df_pdM = (
-    #     df_res[
-    #         ~df_res["pdm"].str.contains(r"[_#:]")
-    #     ]
-    #     .sort_values("ScanFreq", ascending = False)
-    #     .drop_duplicates(subset=["p", "d"])
-    # )
     
-    # Keep LAST entry with highest ScanFreq if more than one
-    #df_pdM = df_pdM.loc[df_pdM.groupby(["p", "d"])["ScanFreq"].idxmax()]
-    # df_pdM.sort_values(["p", "d", "ScanFreq"], inplace = True)
-    # df_pdM.drop_duplicates(["p", "d"], keep="last", inplace = True)
-    
+    # Keep entry with highest ScanFreq
     df_pdM = (
         df_res[
             ~df_res["pdm"].str.contains(r"[_#:]", regex=True)
