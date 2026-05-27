@@ -181,18 +181,11 @@ def qdna_qna(qId, dqna, n, aa, seq):
         )
     
 def getA(df_res, mask_m_valid):
-    p_arr = df_res.loc[mask_m_valid, "p"].to_numpy(dtype=object)
+    p_arr = df_res.loc[mask_m_valid, "p"].to_numpy(dtype = object)
     m_arr = df_res.loc[mask_m_valid, "M"].to_numpy()
-    idx = (m_arr - 1).astype(int)
-    
-    valid = (
-        (m_arr >= 1) &
-        (idx < np.vectorize(len)(p_arr))
-    )
-    
-    res = np.full(len(p_arr), None, dtype=object)
-    res[valid] = [s[i] for s, i in zip(p_arr[valid], idx[valid])]
-    return res
+
+    return [s[int(m) - 1] if isinstance(s, str) else None
+            for s, m in zip(p_arr, m_arr)]
 
 def main(file, infile1, fastafile):
     config = configparser.ConfigParser(inline_comment_prefixes='#')
@@ -327,56 +320,6 @@ def main(file, infile1, fastafile):
     
     dic_qdna_freq = df_res.groupby("qdna")["ScanFreq"].sum().to_dict()
     dic_qna_freq = df_res.groupby("qna")["ScanFreq"].sum().to_dict()
-    
-    df_pdM = (
-        df_res[
-            ~df_res["pdm"].str.contains(r"[_#:]")
-        ]
-        .sort_values("ScanFreq", ascending=False)
-        .drop_duplicates(subset=["p", "d"])
-    )
-    
-    # Keep entry with highest ScanFreq
-    df_pdM = df_pdM.loc[df_pdM.groupby(["p", "d"])["ScanFreq"].idxmax()]
-    
-    dic_pd_M = {}
-    
-    for row in df_pdM.itertuples(index=False):
-        dic_pd_M.setdefault(row.p, {})[row.d] = (
-            row.ScanFreq,
-            row.m,
-            row.l,
-            row.n,
-            row.qdna,
-            row.qna,
-        )
-
-    # dic_pd_M = {}
-    # p_arr = df_pdM["p"].to_numpy()
-    # d_arr = df_pdM["d"].to_numpy()
-    # sf_arr   = df_pdM["ScanFreq"].to_numpy()
-    # m_arr    = df_pdM["m"].to_numpy()
-    # l_arr    = df_pdM["l"].to_numpy()
-    # n_arr    = df_pdM["n"].to_numpy()
-    # qdna_arr = df_pdM["qdna"].to_numpy()
-    # qna_arr  = df_pdM["qna"].to_numpy()
-    # for i in range(len(p_arr)):
-    #     p = p_arr[i]
-    #     d = d_arr[i]
-    
-    #     sub = dic_pd_M.get(p)
-    #     if sub is None:
-    #         sub = {}
-    #         dic_pd_M[p] = sub
-    
-    #     sub[d] = (
-    #         sf_arr[i],
-    #         m_arr[i],
-    #         l_arr[i],
-    #         n_arr[i],
-    #         qdna_arr[i],
-    #         qna_arr[i],
-    #     )
 
     # Make dic_b_e (just one b value)
     df_single_b = df_res[~df_res["b"].str.contains(";")]
@@ -646,6 +589,39 @@ def main(file, infile1, fastafile):
 
     dic_qk_freq = df_res.groupby("qk")["ScanFreq"].sum().to_dict()
     dic_qc_freq = df_res.groupby("qc")["ScanFreq"].sum().to_dict()
+    
+    # df_pdM = (
+    #     df_res[
+    #         ~df_res["pdm"].str.contains(r"[_#:]")
+    #     ]
+    #     .sort_values("ScanFreq", ascending = False)
+    #     .drop_duplicates(subset=["p", "d"])
+    # )
+    
+    # Keep LAST entry with highest ScanFreq if more than one
+    #df_pdM = df_pdM.loc[df_pdM.groupby(["p", "d"])["ScanFreq"].idxmax()]
+    # df_pdM.sort_values(["p", "d", "ScanFreq"], inplace = True)
+    # df_pdM.drop_duplicates(["p", "d"], keep="last", inplace = True)
+    
+    df_pdM = (
+        df_res[
+            ~df_res["pdm"].str.contains(r"[_#:]", regex=True)
+        ]
+        .sort_values(["p", "d", "ScanFreq"], ascending = [True, True, False])
+        .drop_duplicates(["p", "d"], keep="first")
+    )
+    
+    dic_pd_M = {}
+    
+    for row in df_pdM.itertuples(index=False):
+        dic_pd_M.setdefault(row.p, {})[row.d] = (
+            row.ScanFreq,
+            row.m,
+            row.l,
+            row.n,
+            row.qdna,
+            row.qna,
+        )
     
     flat_pd_M = {
         (p, d): vals
