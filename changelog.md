@@ -1,4 +1,14 @@
 ___
+## 1.8
+
+### Date 📅 *2026_06*
+
+### Changes in detail
+
++ Update the PDMTableMaker program to improve speed (x50 - x500 faster depending on dataset size) and reduce memory usage.
+
+
+___
 ## 1.7
 
 ### Date 📅 *2026_01*
