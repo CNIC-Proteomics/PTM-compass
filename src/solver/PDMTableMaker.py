@@ -681,7 +681,6 @@ def main(file, infile1, fastafile):
         "qdnaFreq", "qnaFreq", "qkFreq", "qcFreq", "A", "M", "L", "N", "qdNA",
         "m_left", "m_right", "qNA"
         ]]
-    # TODO A is empty, L and N are different by 1 sometimes, qdNA and qNA also different from joining the other ones
     
     logging.info("Writing output file")
     df_res.to_csv(out_name, index=False, sep='\t', encoding='utf-8')
